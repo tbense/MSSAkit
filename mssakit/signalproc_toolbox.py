@@ -201,97 +201,6 @@ def pearson_corr_stat3(x,y,nlag=100,si=0.95):
     return r,cd2,n,r_si,is_sig
 
 def pearson_corr_stat3_lag(x,y,nlag=100,si=0.95):        
-    
-    # xcx=ones(nlag+1)
-    # xcy=ones(nlag+1)
-    # xx=(x-mean(x))/std(x)
-    
-    # nd=y.shape[1]
-    # r=zeros(nd)
-    # pp=zeros(nd)
-    # cd2=zeros(nd)
-    # n=zeros(nd)
-    # r_si=zeros(nd)
-    # is_sig=zeros(nd)   
-    # mlag=zeros(nd)
-    
-    # idlag=arange(-nlag,nlag)
-    
-    # si2=(si+1)/2
-    
-    # for i in range(nd):
-    #     ccoef=[]
-    #     pval=[]
-        
-    #     yy=(y[:,i]-mean(y[:,i]))/std(y[:,i])
-    #     n=zeros(2*nlag+1)
-        
-        
-    #     for lag in range(-nlag,nlag):
-    #         yyy=np.roll(yy,lag)
-    #         # for k in range(1,nlag+1):
-    #         #     xcx[k]=sum(xx[k:]*xx[:-k])/len(xx)
-    #         #     xcy[k]=sum(yyy[k:]*yyy[:-k])/len(yyy)
-    #         # n1=nonzero(xcx<=exp(-1))[0][0] #*2
-    #         # n2=nonzero(xcy<=exp(-1))[0][0] #*2
-    #         # n[lag]=sqrt(len(xx)/n1*len(yyy)/n2)
-    #         # rv=t(int(n[lag]-2))
-    #         cc,p = pearsonr(xx,yyy)
-            
-    #         ccoef.append(cc)
-    #         pval.append(p)
-            
-            
-            
-        
-    #     maxccid=np.argmax(np.abs(ccoef))
-    #     r[i]=ccoef[maxccid]
-    #     pp[i]=pval[maxccid]
-    #     mlag[i]=idlag[maxccid]
-        
-    #     # to=r[i]*sqrt(int(n[maxccid]-2))/sqrt(1-r[i]**2)
-    #     # cd=rv.cdf(to)
-    #     # cd2[i]=2*cd-1
-    #     # t_si=abs(t.ppf(si2,int(n[maxccid]-2)))
-        
-        
-    #     # r_si[i]=sqrt(t_si**2/(int(n[i]-2)+t_si**2))
-    #     is_sig[i]=pp[i]<0.05
-        
-    #     # for lag in range(-nlag,nlag):
-    #     #     yyy=np.roll(yy,lag)
-    #     #     for k in range(1,nlag+1):
-    #     #         xcx[k]=sum(xx[k:]*xx[:-k])/len(xx)
-    #     #         xcy[k]=sum(yyy[k:]*yyy[:-k])/len(yyy)
-    #     #     n1=nonzero(xcx<=exp(-1))[0][0] #*2
-    #     #     n2=nonzero(xcy<=exp(-1))[0][0] #*2
-    #     #     n[lag]=sqrt(len(xx)/n1*len(yyy)/n2)
-    #     #     rv=t(int(n[i]-2))
-    #     #     cc,p = pearsonr(xx,yyy)
-            
-    #     #     ccoef.append(cc)
-    #     #     pval.append(p)
-            
-            
-            
-        
-    #     # maxccid=np.argmax(np.abs(ccoef))
-    #     # r[i]=ccoef[maxccid]
-    #     # pp[i]=pval[maxccid]
-    #     # mlag[i]=idlag[maxccid]
-        
-    #     # to=r[i]*sqrt(int(n[maxccid]-2))/sqrt(1-r[i]**2)
-    #     # cd=rv.cdf(to)
-    #     # cd2[i]=2*cd-1
-    #     # t_si=abs(t.ppf(si2,int(n[maxccid]-2)))
-        
-        
-    #     # # r_si[i]=sqrt(t_si**2/(int(n[i]-2)+t_si**2))
-    #     # is_sig[i]=abs(to)>=abs(t_si)
-    
-    # return r,pp,mlag,is_sig
-
-
     # Determine the time lags corresponding to the correlation values
     lags = arange(-len(x)+1, len(x))
     midlag = np.where(lags == 0)[0]
@@ -309,10 +218,8 @@ def pearson_corr_stat3_lag(x,y,nlag=100,si=0.95):
     for i in range(nd):        
         yy=(y[:,i]-mean(y[:,i]))/std(y[:,i])
         corr = np.correlate(xx, yy, mode='full')
-        # corr = signal.correlate(yy, xx, mode='same') / np.sqrt(signal.correlate(xx, xx, mode='same')[int(nd/2)] * signal.correlate(yy, yy, mode='same')[int(nd/2)])
-
-        # Find the index of the maximum correlation value
         
+        # Find the index of the maximum correlation value
         max_idx = np.argmax(corr)
         
         # Compute the time lag corresponding to the maximum correlation value
@@ -339,23 +246,10 @@ def pearson_corr_stat3_lag(x,y,nlag=100,si=0.95):
         
         to=rr*sqrt(int(df-2))/sqrt(1-rr**2)
         
-        # Compute the standard error of the correlation
-        # se = np.sqrt((1-rr**2)/(df-2))
-        
         # Compute the lower and upper bounds of the confidence interval
-        # ci_lower = rr - t_crit * se
-        # ci_upper = rr + t_crit * se
-        
         r[i]=copy(rr)
         
-        # print(rr)
-        # print(t_crit)
-        # print(df)
-        
         # Print the significance test results
-        # if rr < ci_lower or rr > ci_upper:
-        #     is_sig[i]=1
-        
         is_sig[i]=abs(to)>=abs(t_si)
     
     return r,max_lag,is_sig
