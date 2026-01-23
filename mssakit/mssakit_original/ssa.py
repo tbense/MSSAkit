@@ -12,8 +12,8 @@ from tqdm import tqdm
 from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
-from mssakit.toolbox import tool
-import mssakit.time_analysis as time
+from mssakit.mssakit_tools.toolbox import tool
+import mssakit.mssakit_tools.time_analysis as time
 
 
 class ssa:

@@ -12,8 +12,8 @@ import cartopy.crs as ccrs
 from tqdm import tqdm
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
-from mssakit.mssa import *
-from mssakit.toolbox import normalize, weight_latitude
+from mssakit.mssakit_original.mssa import *
+from mssakit.mssakit_tools.toolbox import normalize, weight_latitude
 
 mat = loadmat('covobssa_l8.mat')
 lon = mat['lon']

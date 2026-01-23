@@ -13,9 +13,9 @@ from tqdm import tqdm
 from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
-from mssakit.pca import *
-import mssakit.toolbox as tool
-import mssakit.time_analysis as time
+from mssakit.mssakit_tools.pca import *
+import mssakit.mssakit_tools.toolbox as tool
+import mssakit.mssakit_tools.time_analysis as time
 
 class mssa:
     '''Performs MSSA decomposition on multivariate time series.

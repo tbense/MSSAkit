@@ -21,8 +21,8 @@ from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 from statsmodels.tsa.ar_model import AutoReg
 
-import mssakit.time_analysis as time
-import mssakit.toolbox as tool
+import mssakit.mssakit_tools.time_analysis as time
+import mssakit.mssakit_tools.toolbox as tool
 
 class cross_svd:
     '''Performs cross Singular Value Decomposition (SVD) on a covariance matrix
