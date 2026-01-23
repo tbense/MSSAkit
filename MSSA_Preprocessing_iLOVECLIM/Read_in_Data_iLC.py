@@ -8,8 +8,8 @@ from mssakit.MSSA_config import MSSAConfig
 from mssakit.MSSA_config import LevelZonalBottom
 
 
-from Packages.MSSA_Preprocessing_iLOVECLIM.Detrend_procedures import DetrendProcedure_config
-from Packages.MSSA_Preprocessing_iLOVECLIM.Loading_Proxies_mask import retrieving_proxy_mask
+from MSSA_Preprocessing_iLOVECLIM.Detrend_procedures import DetrendProcedure_config
+from MSSA_Preprocessing_iLOVECLIM.Loading_Proxies_mask import retrieving_proxy_mask
 
 
 def vertical_averaging_3D_to_2D(data_masked_with_bool, volume, depth_range_index_list): # or 4D to 3D

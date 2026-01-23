@@ -12,8 +12,11 @@ from tqdm import tqdm
 from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
-from mssakit.mssakit_tools.toolbox import tool
-import mssakit.mssakit_tools.time_analysis as time
+import sys
+import os
+sys.path.append("/Users/toonbense/Documents/GitHub/MSSAkit/mssakit/mssakit_tools") 
+import toolbox as tool
+import time_analysis as time
 
 
 class ssa:
@@ -129,6 +132,7 @@ class ssa:
         self.PC = pc
         self.RC = R
         
+        
     def mcssa(self,siglevel=95,Ns=10,procruste=False,norotate=[]):
         '''Applying Monte Carlo significant test to the SSA
         
@@ -168,7 +172,7 @@ class ssa:
              ds = zeros((self.M,Ns))          
              t = arange(self.M)
              
-             F = time.dominant_freq(self.eigenvectors, fs=sampling_interval, ncomp=self.M)
+             F = time.dominant_freq(self.eigenvectors, fs=self.sampling_interval, ncomp=self.M) # TB changed sampling_interval to self.sampling_interval
              
              if len(self.ts.shape)==1:
                  ah,gh = tool.ARpar(self.ts)

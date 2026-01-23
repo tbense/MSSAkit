@@ -14,12 +14,15 @@ import warnings
 from mssakit.MSSA_config import MSSAConfig
 from mssakit.MSSA_config import LevelZonalBottom
 
-from Packages.MSSA_Postprocessing.Retrieve_PC_RC import retrieve_RC
-from Packages.iLC_TOOLS.TB_toolbox import horiz_weighted_averaging
-from Packages.iLC_TOOLS.TB_toolbox import fix_lons_dataset_ilc_to_min180_180
-from Packages.iLC_TOOLS.TB_toolbox import add_map_features
-from Packages.iLC_TOOLS.TB_toolbox import polarCentral_set_latlim
-from Packages.iLC_TOOLS.TB_toolbox import lead_lag_cor
+from MSSA_Postprocessing.Retrieve_PC_RC import retrieve_RC
+import sys
+import os
+sys.path.append("/Users/toonbense/Documents/GitHub/iLC_TOOLS") # Path to iLC_TOOLS where TB_toolbox is located
+from TB_toolbox import horiz_weighted_averaging
+from TB_toolbox import fix_lons_dataset_ilc_to_min180_180
+from TB_toolbox import add_map_features
+from TB_toolbox import polarCentral_set_latlim
+from TB_toolbox import lead_lag_cor
 
 
 

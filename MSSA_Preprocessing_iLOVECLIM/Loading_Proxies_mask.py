@@ -3,8 +3,9 @@ import xarray as xr
 import numpy as np
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..'))) 
-from Packages.iLC_TOOLS.TB_toolbox import fix_lons_dataset_ilc_to_min180_180
+
+sys.path.append("/Users/toonbense/Documents/GitHub/iLC_TOOLS") #path to iLC_TOOLS where TB_toolbox is located
+from TB_toolbox import fix_lons_dataset_ilc_to_min180_180
 
 import random
 

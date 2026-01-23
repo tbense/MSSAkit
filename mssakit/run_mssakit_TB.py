@@ -1,5 +1,5 @@
 from mssakit.MSSA_config import MSSAConfig
-from Packages.MSSA_Preprocessing_iLOVECLIM.Read_in_Data_iLC import ReadinData_ilc_config
+from MSSA_Preprocessing_iLOVECLIM.Read_in_Data_iLC import ReadinData_ilc_config
 from mssakit.mssakit_TB import mssa_new
 
 import numpy as np
