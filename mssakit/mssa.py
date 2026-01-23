@@ -152,17 +152,22 @@ class mssa:
         self.M = M
             
         L = N-M+1
+        self.L = L
         
         # creating trajectory matrix
         idx = hankel(arange(L),arange(N-M,N))
-        xtde = zeros((L,M,D),complex)
+        xtde = zeros((L,M,D),complex)           # trajectory matrix X 
         for d in range(D):
             xin = y[:,d]    
             xtde[:,:,d] = xin[idx]            
         self.trajectory_matrix = xtde
         
-        xtde = reshape(xtde.swapaxes(1,2),(N-M+1,D*M)) 
+        xtde = reshape(xtde.swapaxes(1,2),(N-M+1,D*M)) # reshape trajectory matrix into X (L, M*D) , ie by stacking the lagged copies of the matrix behind each other
         
+        #  perform MSSA by applying SVD to the trajectory matrix, devided by sqrt(D*M) to make the singular values squared compare directly to variance explained.
+        #  Applying SVD directly on trajectory matrix X gives us the singular vectors (left, EU and right EV^T) which represent T-EOFs and S-EOFs as well as the singular values Lamda_D.
+        #  right singular vectors EV=E_d . (eq 4 AS96), eq2 GG15
+
         EU,EW,EV = svd(xtde/sqrt(D*M),full_matrices=False)
         EV = EV.T
         
@@ -171,11 +176,11 @@ class mssa:
         EW = EW[ks]
         EV = real(EV[:,ks])
         EU = real(EU[:,ks])
-        eigval = EW**2
+        eigval = EW**2          # eigenvalues = singular values squared.
         
         if varimax:            
             # Rotate only the components with % of eigenvalues > 1%
-            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1
+            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1           # select the index Sm where % explained>= 1%
             
             EVsc = EV[:,:Sm]@diag(EW[:Sm])
             EVr = zeros((M,D,Sm))
