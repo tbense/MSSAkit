@@ -57,6 +57,9 @@ def get_sign_freq_pairs(config:MSSAConfig, freq_plus_min_range = 0.0001, power_r
         power_upper = data_power[index_upper]
 
         for j in np.arange(1,6,1):
+            if (i+j) == len(sign_modes):
+                break
+            
             index_new = sign_modes[i+j]
             if index_new >49:
                 break
