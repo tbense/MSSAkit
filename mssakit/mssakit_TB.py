@@ -153,22 +153,29 @@ class mssa_new:
             #print(ts)
             ts_pca = pca(ts)
             pc = ts_pca.PC
+            
             var_expl = ts_pca.variance_captured_perc.cumsum()*100
 
-            idxx=0
-            print(f"var expl has length: {len(var_expl)}")
-            for i in range(len(var_expl)):
-                if ((var_expl[i] > eof_var)):
-                    if (i > 4):
-                        print(f"hello 1 {i} and {eof_var}")
-                        idxx = i
-                        break
-            n_pc = idxx+1
-            print("Selected " + str(n_pc) + " PCs that together explain " +str( np.around(var_expl[n_pc-1],3 )) + " % of the variance")
-            y = pc[:,:n_pc]         # selected amount of PCs
-                                    # PCs are scaled by singular values (!) to ensure variance retained
-            vr = ts_pca.v[:,:n_pc]  # right singular vectors from PCA
+            if eof_var == 100: #select all pcs as input (y)
+                y = pc
+                n_pc = pc.shape[1]
+                vr = ts_pca.v
 
+            elif eof_var < 100:
+                idxx=0
+                #print(f"var expl has length: {len(var_expl)}")
+                for i in range(len(var_expl)):
+                    if ((var_expl[i] > eof_var)):
+                        if (i > 4):
+                            print(f"hello 1 {i} and {eof_var}")
+                            idxx = i
+                            break
+                n_pc = idxx+1
+                y = pc[:,:n_pc]         # selected amount of PCs
+                                        # PCs are scaled by singular values (!) to ensure variance retained
+                vr = ts_pca.v[:,:n_pc]  # right singular vectors from PCA
+
+            print("Selected " + str(n_pc) + " PCs that together explain " +str( np.around(var_expl[n_pc-1],3 )) + " % of the variance")
             return y, vr, n_pc
 
         y_raw = []
