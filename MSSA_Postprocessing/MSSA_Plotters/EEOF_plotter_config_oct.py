@@ -352,7 +352,7 @@ def EEOF_plotter_config(config: MSSAConfig, EEOFs_pair, start_t_spatial, step_si
 
     ### ------------------------------------------------------------------------------------------------
     #load masks
-    ds_masks  = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
+    ds_masks  = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
     ### ------------------------------------------------------------------------------------------------
     #load data
     pdf_filename = config.output_directory + "Figures/" + 'Quad_Hof_etc' + config.get_string_file_info() + "STPC_pairs_" + str(EEOFs_pair[0]) + str(EEOFs_pair[1]) + ".pdf"

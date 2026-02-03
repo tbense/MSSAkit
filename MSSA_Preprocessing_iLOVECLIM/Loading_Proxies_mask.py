@@ -28,10 +28,10 @@ def retrieving_proxy_mask(proxy_cell_pct=100 , bool180E_180W = False):
         """
 
     if bool180E_180W == True: 
-        ds_masks = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
+        ds_masks = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
     elif bool180E_180W == False:
         # must be on iLOVECLIm 22.5 - 382.5 lon grid, because Read_in_Data_iLC loads in data that way.
-        ds_masks = (xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
+        ds_masks = (xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
 
     locations_list_of_lists = [] # store locations data from db into list of [lat,lon] lists
     for i in range(df12k.shape[0]):

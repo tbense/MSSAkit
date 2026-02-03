@@ -4,6 +4,21 @@ import netCDF4 as netcdf
 
 from mssakit.MSSA_config import MSSAConfig
 
+from MSSA_Postprocessing.Retrieve_PC_RC import retrieve_RC
+from MSSA_Postprocessing.MSSA_Plotters.Spectrum_plotter_config_oct import SpectrumPlotter
+from IPython.display import clear_output
+
+import sys
+import os
+sys.path.append("/Users/toonbense/Documents/GitHub/iLC_TOOLS") # Path to iLC_TOOLS where TB_toolbox is located
+
+from TB_toolbox import fix_lons_dataset_ilc_to_min180_180
+from TB_toolbox import horiz_weighted_averaging
+from TB_toolbox import lead_lag_cor
+
+import netCDF4 as netcdf
+
+from MSSA_Preprocessing_iLOVECLIM.Loading_Proxies_mask import retrieving_proxy_mask
 
 
 
@@ -31,6 +46,7 @@ def retrieve_MC_configs_and_filenames(input_config: MSSAConfig, grid_pct:int, MC
         config = MSSAConfig(label=input_config.label, data_path=input_config.data_path, start_time=input_config.start_time,end_time=input_config.end_time,red_time=input_config.red_time, eof_var=input_config.eof_var,window_size=input_config.window_size,realizations=input_config.realizations,sel_region=input_config.sel_region,trend_type=input_config.trend_type,output_directory=input_config.output_directory,norotate=input_config.norotate,
                 level_zonal_bottom=input_config.level_zonal_bottom,level_index_range=input_config.level_index_range,
                 numberOfVar=input_config.numberOfVar,
+                signif_test = input_config.signif_test,
 
                 run_name=run_name,
                 proxy_cell_pct= config_grid_pct,
@@ -89,12 +105,6 @@ def place_in_bins(config:MSSAConfig, list_frequencies_of_interest,list_freq_indx
     dict_periods['config'] = config
     return dict_periods
 
-from Packages.MSSA_Postprocessing.Retrieve_PC_RC import retrieve_RC
-from Packages.MSSA_Postprocessing.MSSA_Plotters.Spectrum_plotter_config_oct import SpectrumPlotter
-from IPython.display import clear_output
-from Packages.iLC_TOOLS.TB_toolbox import fix_lons_dataset_ilc_to_min180_180
-from Packages.iLC_TOOLS.TB_toolbox import horiz_weighted_averaging
-from Packages.MSSA_Preprocessing_iLOVECLIM.Loading_Proxies_mask import retrieving_proxy_mask
 
 
 
@@ -120,7 +130,7 @@ def calculating_region_averages_dict(dict_1):
     """
 
 
-    ds_masks = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
+    ds_masks = fix_lons_dataset_ilc_to_min180_180(xr.open_dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc'))
     Full_Proxy_mask = retrieving_proxy_mask(100, bool180E_180W=True)
 
     bool_Ice = ((ds_masks.lat > 55) & (ds_masks.lat < 70) & (ds_masks.lon > -33) &  (ds_masks.lon < -13))
@@ -160,8 +170,6 @@ def calculating_region_averages_dict(dict_1):
     return dict_1
 
 
-from Packages.iLC_TOOLS.TB_toolbox import lead_lag_cor
-import netCDF4 as netcdf
 
 
 def plot_lead_lag_loc(config:MSSAConfig,EEOF_pair, ts_var1, ts_var2,str1, str2, ax, color):

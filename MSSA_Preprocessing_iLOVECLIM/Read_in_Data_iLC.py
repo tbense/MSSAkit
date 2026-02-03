@@ -182,7 +182,7 @@ def ReadinData_ilc_config(config: MSSAConfig, current_variable):
         warnings.filterwarnings('ignore')
         
     elif config.level_zonal_bottom == LevelZonalBottom.BOTTOM.value: #Bottom cells
-        ds_masks = netcdf.Dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc', 'r')
+        ds_masks = netcdf.Dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc', 'r')
         mask_bottom_cells = ds_masks.variables['mask_deepest_cell_3d'][:]
         ds_masks.close()
         if current_variable == 'mld': # mld has no bottom cells as it is a 2d array. no need to select bottom cells.
@@ -195,7 +195,7 @@ def ReadinData_ilc_config(config: MSSAConfig, current_variable):
 
     elif config.level_zonal_bottom == LevelZonalBottom.Three_D.value: #Bottom cells
         print(LevelZonalBottom)
-        #ds_masks = netcdf.Dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/iLOVECLIM_code_TB/masks_ilc_tb.nc', 'r')
+        #ds_masks = netcdf.Dataset('/Users/toonbense/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/PhD/iLOVECLIM_code_TB/masks_ilc_tb.nc', 'r')
         var_masked = var * mask_1
         dim_i = lon
         dim_j = lat
