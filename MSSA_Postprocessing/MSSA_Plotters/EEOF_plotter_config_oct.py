@@ -444,7 +444,7 @@ def EEOF_plotter_config(config: MSSAConfig, EEOFs_pair, start_t_spatial, step_si
         #SPATIOTEMPORAL------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         ## retrieve xarray_da of EEOF pairs in a list
 
-        list_xr_data_array_unfixed = (retrieve_RC(config=config, EEOFs_pair=EEOFs_pair, RCsOR_PCs="RCs", zscore=zscore))  # retrieves a da with dims timexlatxlon or timexlevelxlat (!)    
+        list_xr_data_array_unfixed = (retrieve_RC(config=config, EEOFs_pair=EEOFs_pair, RC_sOR_PCs_or_STDs="RCs", zscore=zscore))  # retrieves a da with dims timexlatxlon or timexlevelxlat (!)    
         list_xr_data_arrays = []
         for i in range(config.numberOfVar):
             list_xr_data_arrays.append(fix_lons_dataset_ilc_to_min180_180(list_xr_data_array_unfixed[i]))

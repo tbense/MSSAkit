@@ -95,14 +95,22 @@ def one_over(x):
     return x
 
 
-def Spectrum_Overview_plot(configs_list,freq_plus_min_range = 0.0001,power_range_pct = 0.05, significance_pct=99):
+def Spectrum_Overview_plot(configs_list,freq_plus_min_range = 0.0001,power_range_pct = 0.05, significance_pct=99, ax = None):
     cmap = 'tab20c'
     #cmap = 'plasma'
     total_y = len(configs_list)
     y_dy = total_y/15
     mc_norm = mcolors.Normalize(vmin=0, vmax=20)
 
-    fig, axes = plt.subplots(1, figsize=(8,6),layout='constrained')
+
+
+
+    # if ax instance is provided, plot on that ax instance. Otherwise make a new figure.
+    if ax == None:
+        fig, axes = plt.subplots(1, figsize=(8,6),layout='constrained')
+    else:
+        axes = ax
+
     list_y_ticklabels = []
     for i, config in enumerate(configs_list):
         list_y_ticklabels.append(config.run_name)
