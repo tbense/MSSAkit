@@ -46,7 +46,7 @@ def retrieve_RC(config: MSSAConfig, EEOFs_pair, RC_sOR_PCs_or_STDs="RCs", zscore
         
     lat	        = EEOF_data.variables['lat'][:]
     masked_field	= EEOF_data.variables['masked_field'][:]
-    print(f"shape masked field = {masked_field.shape}")
+    #print(f"shape masked field = {masked_field.shape}")
     '''ST_PCs = EEOF_data.variables['ST_PCs'][:]
     var_expl_mssa = EEOF_data.variables['var_expl_mssa'][:]
     PCs = EEOF_data.variables['ST_PCs']'''

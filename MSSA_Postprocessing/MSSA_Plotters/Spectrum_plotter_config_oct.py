@@ -89,16 +89,16 @@ def SpectrumPlotter(config: MSSAConfig, significance_pct = 99, axes = None):
     axes.set_xlabel('Frequency (years$^{-1}$)')
     print(f"freq shape ={freq.shape} and MC_power shape = {MC_power.shape}")
     axes.errorbar(freq, MC_power[4,:],yerr=[MC_power[4,:] - MC_power[significance_index_lower,:],MC_power[significance_index_upper,:] - MC_power[4,:]],
-                color = 'r', elinewidth = 1, linewidth = 0.1, ls = '', label = str(abs(significance_pct-100)) + ' - ' + str(significance_pct) + " % CI")
+                color = 'r', elinewidth = 1, linewidth = 0.1, ls = '', label = str(abs(significance_pct-100)) + ' - ' + str(significance_pct) + "% CI")
 
-    axes.plot(freq, data_power, 'ks', markerfacecolor = 'none', markeredgecolor='blue', lw=0.5, label = 'ST-PC')
+    axes.plot(freq, data_power, 'ks', markerfacecolor = 'none', markeredgecolor='blue', lw=0.5, label = 'T_EOF')
     
     # plot a line that contains the approximate range of the relevant period based on the window size M  :::  M to M/5
     window_size_real = config.window_size*config.red_time  #change input M (window_size) to true M in years 
 
-    y = [1500,1500]
-    x = [(1/window_size_real) , (1/(window_size_real/5))]  # convert period of M window to frequency window
-    axes.hlines(y=100, xmin= x[0], xmax=x[1], colors='green',alpha=0.5, linestyles='dashed', label='M to M/5')    
+    #y = [1500,1500]
+    #x = [(1/window_size_real) , (1/(window_size_real/5))]  # convert period of M window to frequency window
+    #axes.hlines(y=100, xmin= x[0], xmax=x[1], colors='green',alpha=0.5, linestyles='dashed', label='M to M/5')    
     
 
     axes.set_yscale('log')
@@ -110,7 +110,7 @@ def SpectrumPlotter(config: MSSAConfig, significance_pct = 99, axes = None):
 
     if config.signif_test != SignTest.NOISE_BASIS.value:
         axes.scatter(x = freq[sign_modes], y = data_power[sign_modes],
-                marker='s', c='blue',label='significant') #, markerfacecolor = 'blue', markeredgecolor='blue')
+                marker='s', c='blue',label='Significant') #, markerfacecolor = 'blue', markeredgecolor='blue')
 
         list_freq = list(freq[sign_modes])
         list_power_data = list(data_power[sign_modes])

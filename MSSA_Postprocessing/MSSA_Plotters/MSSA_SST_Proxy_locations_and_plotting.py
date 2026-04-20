@@ -57,7 +57,7 @@ def retrieve_MC_configs_and_filenames(input_config: MSSAConfig, grid_pct:int, MC
         configs_list.append(config)
     return configs_list, list_filename
     
-def place_in_bins(config:MSSAConfig, list_frequencies_of_interest,list_freq_indx,list_freq_indx_freqs, period_bin_width_fraction = 0.05):
+def place_in_bins(config:MSSAConfig, list_frequencies_of_interest,list_freq_indx,list_freq_indx_freqs, period_bin_width_fraction = 0.025):
     """
     Places significant EEOF_pairs of a specific run in predetermined bins of interest.
     Works in concert with get_sign_freq_pairs from (from Packages.MSSA_Postprocessing.MSSA_Plotters.Spectrum_overview_plotter)
@@ -113,7 +113,7 @@ def calc_horiz_weighted_average(data, mask, volume):
     ts = horiz_weighted_averaging(masked, volume=volume)
     return ts
 
-def calculating_region_averages_dict(dict_1):
+'''def calculating_region_averages_dict(dict_1):
     """
     Computes Proxy_relevant regional averages based on an input dictionary.
     Dictionary must have shape:
@@ -167,7 +167,7 @@ def calculating_region_averages_dict(dict_1):
             dict_1[name]['wAtl'] = calc_horiz_weighted_average(dict_1[name]["RC"], bool_wAtl, ds_masks.Volume.isel(level=-1))
             dict_1[name]['eAtl'] = calc_horiz_weighted_average(dict_1[name]["RC"], bool_eAtl, ds_masks.Volume.isel(level=-1))
             dict_1[name]['wRidge'] = calc_horiz_weighted_average(dict_1[name]["RC"], bool_wRidge, ds_masks.Volume.isel(level=-1))
-    return dict_1
+    return dict_1'''
 
 
 
