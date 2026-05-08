@@ -86,7 +86,7 @@ def SpectrumPlotter(config: MSSAConfig, significance_pct = 99, axes = None):
 
 
     axes.set_xlim([0.0001,0.02])
-    axes.set_xlabel('Frequency (years$^{-1}$)')
+    axes.set_xlabel('Frequency (yr$^{-1}$)')
     print(f"freq shape ={freq.shape} and MC_power shape = {MC_power.shape}")
     axes.errorbar(freq, MC_power[4,:],yerr=[MC_power[4,:] - MC_power[significance_index_lower,:],MC_power[significance_index_upper,:] - MC_power[4,:]],
                 color = 'r', elinewidth = 1, linewidth = 0.1, ls = '', label = str(abs(significance_pct-100)) + ' - ' + str(significance_pct) + "% CI")
@@ -133,7 +133,7 @@ def SpectrumPlotter(config: MSSAConfig, significance_pct = 99, axes = None):
 
     twinaxes0 = axes.twiny()
     new_tick_locations = np.array([500,300,200,100,50,10])
-    twinaxes0.set_xlabel('Period (years)')
+    twinaxes0.set_xlabel('Period (yr)')
 
     twinaxes0.set_xticks(one_over(new_tick_locations))
     twinaxes0.set_xticklabels(new_tick_locations)

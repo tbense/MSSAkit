@@ -73,11 +73,15 @@ def retrieving_proxy_mask(proxy_cell_pct=100 , bool180E_180W = False):
         checking_locs.append([local_lat_i, locat_lon_i])
         proxy_mask[local_lat_i, locat_lon_i] = 1 #contains latxlon array with 1s where there are proxy locations
 
+        proxy_mask = proxy_mask * ds_masks['mask_global_ocean'] # ensure all locations are actually ocean cells.
+        tot_cells = proxy_mask.sum()
+    print(f"unique proxy grid cells {tot_cells.data}")
 
     # select a percentage of masked grid cells
     if proxy_cell_pct == 100:
         proxy_mask = proxy_mask
-        
+        print(f"iLOVECLIM unique locations in ocean mask: {proxy_mask.sum()}")
+    
     elif (proxy_cell_pct < 100) & (proxy_cell_pct > 1):
         unique_grid_cells = np.argwhere(proxy_mask.data == 1)
         cell_fraction = 1 - (proxy_cell_pct / 100) # randomly select pct of grid cells to be set to 0 
@@ -85,7 +89,7 @@ def retrieving_proxy_mask(proxy_cell_pct=100 , bool180E_180W = False):
         set_to_zeros_index = random.sample(list(unique_grid_cells), n_to_select)
         for (i, j) in set_to_zeros_index: 
             proxy_mask[i, j] = 0 # now proxy_mask contains 1s in proxy_cell_pct of the amount of grid cells it would for a full (100% proxy grid cell) mask.
-        print(f"iLOVECLIM unique locations in ocean mask: {proxy_mask.sum()}")
+        print(f"iLOVECLIM unique locations in ocean mask: subsampled:  {proxy_mask.sum()}")
     else:
         print("Check proxy_cell_pct is between 1 and 100")
         return

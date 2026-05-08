@@ -179,8 +179,10 @@ def one_over(x):
     x[~near_zero] = 1 / x[~near_zero]
     return x
 
+from matplotlib.colors import ListedColormap, BoundaryNorm
+from cmcrameri import cm
 
-def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct = 0.025,quadrature_range_pct = 0.025, significance_pct=99, check_quadrature = True,ax = None):
+def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct = 0.025,quadrature_range_pct = 0.025, significance_pct=99, check_quadrature = True,ax = None,cbar_ax = None, cmap = cm.acton_r):
     """
     Plots spectrum overview figure. 
 
@@ -199,11 +201,13 @@ def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct
     
     
     
-    cmap = 'tab20c'
+    cmap = cmap
+    bounds = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    mc_norm = BoundaryNorm(bounds, cmap.N)
     #cmap = 'plasma'
     total_y = len(configs_list)
     y_dy = total_y/15
-    mc_norm = mcolors.Normalize(vmin=0, vmax=20)
+    #mc_norm = mcolors.Normalize(vmin=0, vmax=20)
 
 
 
@@ -254,25 +258,25 @@ def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct
 
             if check_quadrature: #consider freq, quad, and power.
                 if list_sign_freq[i] in list_sign_freq_power_quad:               #Checks if sign pair of equal freq has equal power AND quadrature.                                         
-                    axes.scatter(f , y=y_val, c=var_expl, s = 50, marker = '*', norm = mc_norm, cmap=cmap)
-                    axes.scatter(f2 , y=y_val, c= var_expl, s = 50, marker='*', norm = mc_norm, cmap=cmap)
+                    axes.scatter(f , y=y_val, c=var_expl, s = 70, marker = '*', norm = mc_norm, cmap=cmap)
+                    axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='*', norm = mc_norm, cmap=cmap)
                 elif list_sign_freq[i] in list_sign_freq_power:
-                    axes.scatter(f , y=y_val, c=var_expl, s = 40, marker = '^', norm = mc_norm, cmap=cmap)
-                    axes.scatter(f2 , y=y_val, c= var_expl, s = 40, marker='^', norm = mc_norm, cmap=cmap)   
+                    axes.scatter(f , y=y_val, c=var_expl, s = 70, marker = '^', norm = mc_norm, cmap=cmap)
+                    axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='^', norm = mc_norm, cmap=cmap)   
                 elif list_sign_freq[i] in list_sign_freq_quad:
-                    axes.scatter(f , y=y_val, c=var_expl, s = 40, marker = 's', norm = mc_norm, cmap=cmap)
-                    axes.scatter(f2 , y=y_val, c= var_expl, s = 40, marker='s', norm = mc_norm, cmap=cmap)            
+                    axes.scatter(f , y=y_val, c=var_expl, s = 70, marker = 's', norm = mc_norm, cmap=cmap)
+                    axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='s', norm = mc_norm, cmap=cmap)            
                 elif list_sign_freq[i] in list_sign_freq:                                                                                              
-                    a =axes.scatter(f , y=y_val, c= var_expl, s = 40, marker = 'o',lw=2, norm = mc_norm, cmap=cmap) 
-                    b =axes.scatter(f2 , y=y_val, c= var_expl, s = 40, marker='o',lw=2, norm = mc_norm, cmap=cmap)
+                    a =axes.scatter(f , y=y_val, c= var_expl, s = 70, marker = 'o',lw=2, norm = mc_norm, cmap=cmap) 
+                    b =axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='o',lw=2, norm = mc_norm, cmap=cmap)
 
             else: #only consider freq and power
                 if list_sign_freq[i] in list_sign_freq_power:
-                    axes.scatter(f , y=y_val, c=var_expl, s = 40, marker = '^', norm = mc_norm, cmap=cmap)
-                    axes.scatter(f2 , y=y_val, c= var_expl, s = 40, marker='^', norm = mc_norm, cmap=cmap) 
+                    axes.scatter(f , y=y_val, c=var_expl, s = 70, marker = '^', norm = mc_norm, cmap=cmap)
+                    axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='^', norm = mc_norm, cmap=cmap) 
                 elif list_sign_freq[i] in list_sign_freq:                                                                                              
-                    a =axes.scatter(f , y=y_val, c= var_expl, s = 40, marker = 'o',lw=2, norm = mc_norm, cmap=cmap) 
-                    b =axes.scatter(f2 , y=y_val, c= var_expl, s = 40, marker='o',lw=2, norm = mc_norm, cmap=cmap)
+                    a =axes.scatter(f , y=y_val, c= var_expl, s = 70, marker = 'o',lw=2, norm = mc_norm, cmap=cmap) 
+                    b =axes.scatter(f2 , y=y_val, c= var_expl, s = 70, marker='o',lw=2, norm = mc_norm, cmap=cmap)
 
 
 
@@ -284,13 +288,13 @@ def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct
 
     axes.set_xlim([0.0001,0.011])
     axes.set_ylim(0,total_y +1)
-    axes.set_xlabel('Frequency (years$^{-1}$)')
+    axes.set_xlabel('Frequency (yr$^{-1}$)')
 
 
 
     twinaxes0 = axes.twiny()
     new_tick_locations = np.array([500,300,200,100,50,10])
-    twinaxes0.set_xlabel('Period (years)')
+    twinaxes0.set_xlabel('Period (yr)')
 
     twinaxes0.set_xticks(one_over(new_tick_locations))
     twinaxes0.set_xticklabels(new_tick_locations)
@@ -299,7 +303,11 @@ def Spectrum_Overview_plot(configs_list,period_range_pct = 0.025,power_range_pct
 
     sm = plt.cm.ScalarMappable(cmap=plt.get_cmap(cmap), norm=mc_norm)
     sm.set_array([])
-    cbar = plt.colorbar(sm, ax=axes, label='Variance Explained (%)')
+    if cbar_ax is None:
+        cbar = plt.colorbar(sm, ax=axes, label='Variance explained (%)')
+    else: 
+        cbar = plt.colorbar(sm, cax=cbar_ax, label='Variance explained (%)')
+
     cbar.set_ticks(np.arange(0,21,4))
     # Create proxy artists for the legend
     #empty_marker = mlines.Line2D([], [], color='none', marker='o',

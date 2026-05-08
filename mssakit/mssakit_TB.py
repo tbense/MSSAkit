@@ -166,10 +166,13 @@ class mssa_new:
                 #print(f"var expl has length: {len(var_expl)}")
                 for i in range(len(var_expl)):
                     if ((var_expl[i] > eof_var)):
-                        if (i > 4):
-                            print(f"hello 1 {i} and {eof_var}")
+                        if (i > 4): #ensures more than 5 PCs are included.
                             idxx = i
                             break
+                        else:
+                            raise Exception(f"Error: selected too few PCs: ({i} < 5)")
+   
+                            
                 n_pc = idxx+1
                 y = pc[:,:n_pc]         # selected amount of PCs
                 vr = ts_pca.v[:,:n_pc]  # right singular vectors from PCA
@@ -216,9 +219,7 @@ class mssa_new:
         self.ts_pc = np.copy(y)
 
 
-        print(y.shape)
-        print('----------')
-        print(y)
+
 
         M = int(config.window_size)
         self.M = M
@@ -401,10 +402,7 @@ class mssa_new:
         '''
         Ns = config.realizations
 
-        if hasattr(self, 'ts_pc'):
-            y = self.ts_pc # takes PCs from all variables stacked together
-        else:
-            y = self.ts
+        y = self.ts_pc # takes PCs from all variables stacked together
             
         N,D = y.shape
         M = self.M
@@ -535,6 +533,7 @@ class mssa_new:
                 for k in range(self.left_vectors.shape[1]):                        
                     wk = np.sort(Wn[:,k])
                     siglevel_val[i,k] = wk[int(Ns*per_choice[i]/100)]
+
                     if i ==5:
                         if self.eigenvalue[k] > siglevel_val[i,k]:        
                             sign90.append(k)
