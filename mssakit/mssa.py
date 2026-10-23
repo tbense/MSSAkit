@@ -273,17 +273,13 @@ class mssa:
         self.T, self.sigma_T = time.dominant_period(A,fs=sampling_interval,uncertainty=True)
         
         
-    def mcmssa(self, siglevel=95, Ns=10, norotate=[]):        
+    def mcmssa(self, Ns=100, norotate=[]):        
         ''' Applying Monte Carlo to the MSSA
                 
         Parameters
-        ------------
-        siglevel : int
-            The significance level (%) in the Monte Carlo test, given between 0 and 100.
-            The default is 95.
-            
+        ------------    
         Ns : int
-            Number of surrogates. The default is 10.
+            Number of surrogates. The default is 100.
         
         norotate : list
             The list of index of non-rotated T-EOF. The default is []
@@ -291,11 +287,13 @@ class mssa:
 
         Atributes
         ---------
-        siglevel : int
-            The given signigicance level (in %) in the MC test
-        
-        isig : list
-            The index of MSSA PC that is above the significance level
+        sign90 : The index of MSSA PC that is above the 90% significance level
+
+        sign95 : The index of MSSA PC that is above the 95% significance level
+
+        sign97_5 : The index of MSSA PC that is above the 97.5% significance level
+
+        sign99 : The index of MSSA PC that is above the 99% significance level
         
         eigenvalue_suro : numpy.ndarray
             The eigenvalue of the surrogates
@@ -307,9 +305,9 @@ class mssa:
             y = self.ts
             
         N,D = y.shape
-        L = N - self.M+1
-        
-        N2 = max(L,D*self.M)        
+        M = self.M
+        L = N - M+1
+        N2 = max(L,D*M)        
         
         iin=0 # initiate loop        
         nn0 = [0]
@@ -333,23 +331,50 @@ class mssa:
             for k in range(D):       
                 r[:,k,:] = lfilter(np.array([sqrt(alpha[k])]),np.array([1,-gamma[k]]),R[:,k,:],axis=0)        
             
-            for n in tqdm(range(Ns)):
-                Yn = zeros((L,self.M,D))
-                for d in range(D):
-                    xin = r[:,d,n]
-                    Yn[:,:,d] = (xin[idx])
-                Yn = reshape(Yn.swapaxes(1,2),(L,D*self.M))
-                un,wn,vn = svd(Yn/sqrt(N2),full_matrices=False)
-                vn = vn.T
-                
-                pn = (un@diag(wn)).T@(self.left_vectors@diag(self.singularvalue))                
-                up,sp,vp = svd(pn)
-                Te = real(up)@real(vp)                
-                Wn[n,:] = diag(Te.T@diag(wn)@Te)**2
-                
+                Lambda_Procrustes = np.zeros((Ns,self.left_vectors.shape[1]))
+                for n in tqdm(range(Ns)):                               
+                    Yn = np.zeros((L,self.M,D))
+                    for d in range(D):
+                        xin = r[:,d,n]
+                        Yn[:,:,d] = (xin[idx])
+                    Yn = np.reshape(Yn.swapaxes(1,2),(L,D*M))
+                    un,wn,vn = svd(Yn/np.sqrt(N2),full_matrices=False)                                 # Yn is the trajectory matrix of each surrogate (L, M, D) - Reshaped to 2D -> (L, D*M). Normalized by the maximum of L & D*M
+                    vn = vn.T
+                                                                                                    # These steps introduce the Procrustes rotation... formulas from Groth&Ghil 2015
+                    pn = (un@np.diag(wn)).T@(self.left_vectors@np.diag(self.singularvalue))               # eq 10B (GG2015): E_r = U_n, Sigma_R = wn ), self.left_vectors (= data_left_singular_vectors = EU, self.singuularvalue = EW )
+                                                                                                    # (E_r @ Sigma_R)^T @   E_data @ Sigma_data  == USV'
+                    up,sp,vp = svd(pn)                                                              # eq 10b right hand side gives U S V' 
+                    Te = np.real(up)@np.real(vp)                                                          # eq 10a  , thus
+                    #Wn_wrong[n,:] = np.diag(Te.T@np.diag(wn)@Te)**2                                             # eq 11 (!) squared -> directly calculates eigenvalue instead of singular value (see below: self.eigenvalue_suro = Wn)
+                    Lambda_Procrustes [n,:] = np.diag(Te.T@np.diag(wn**2)@Te)   
+                    Wn = Lambda_Procrustes.copy()
             iin+=1
-            
-            Ongarde=[]
+            sign90=[]
+            sign95=[]
+            sign97_5=[]
+            sign99=[]
+
+            per_choice= np.asarray([1, 2.5, 5, 10, 50, 90, 95, 97.5, 99])  #TB-percentiles to calculate significance for
+            self.per_choice = per_choice
+            siglevel_val = np.zeros((len(per_choice),self.left_vectors.shape[1]))
+            for i in range(len(per_choice)):
+                for k in range(self.left_vectors.shape[1]):                        
+                    wk = np.sort(Wn[:,k])
+                    siglevel_val[i,k] = wk[int(Ns*per_choice[i]/100)]
+
+                    if i ==5:
+                        if self.eigenvalue[k] > siglevel_val[i,k]:        
+                            sign90.append(k)
+                    elif i ==6:
+                        if self.eigenvalue[k] > siglevel_val[i,k]:        
+                            sign95.append(k)
+                    elif i ==7:
+                        if self.eigenvalue[k] > siglevel_val[i,k]:        
+                            sign97_5.append(k)
+                    elif i ==8:
+                        if self.eigenvalue[k] > siglevel_val[i,k]:        
+                            sign99.append(k)
+            '''Ongarde=[]
             siglevel_val = zeros(self.left_vectors.shape[1])
             for k in range(self.left_vectors.shape[1]):                        
                 wk = sort(Wn[:,k])
@@ -358,10 +383,15 @@ class mssa:
                     Ongarde.append(k)
                     # print(k)
             nn=Ongarde
-            print(nn0,nn)
+            print(nn0,nn)'''
            
-        self.siglevel = siglevel
-        self.isig = Ongarde
+        #self.siglevel = siglevel
+        #self.isig = Ongarde
+        self.sign90 = sign90
+        self.sign95 = sign95
+        self.sign97_5 = sign97_5
+        self.sign99 = sign99
+
         self.eigenvalue_suro = Wn
         self.siglevel_value = siglevel_val
         
