@@ -20,7 +20,7 @@ from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 from statsmodels.tsa.ar_model import AutoReg
 
-import mssakit.time_analysis as time
+import mssakit.mssakit_tools.time_analysis as time
 
 class pca:
     '''Performs Principal Component Analysis (PCA) on multivariate time series. 
