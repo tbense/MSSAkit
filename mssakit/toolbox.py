@@ -34,7 +34,7 @@ def normalize(x, axis=0):
     return x, stdx
 
 
-def ARpar(X):
+'''def ARpar(X):
    Xb=mean(X)
    N=X.shape[0]
    n=12
@@ -76,7 +76,7 @@ def compRC(X,V,N=[0,1,2,3,4,5,6,7,8]):
         for k in range(L-M+1,L): 
             rc[k,i]=1./(L-k)*dot(transpose(flipud(pc[k-M+1:,i])),Vn[k-L+M:,i])   
     return rc        
-    
+    '''
 def compPCm(X,M,V,Nc=[0,1,2,3,4,5,6,7]):
     S=X.shape;
     T=V.shape;
@@ -115,7 +115,7 @@ def compRCm(X,M,V,A,Nc=[0,1,2,3,4,5,6,7]):
         R[N-i-1,:]=R[N-i-1,:]*M/(i+1)
     return R
     
-def ar1gen(a,g,L,N):
+'''def ar1gen(a,g,L,N):
     x=zeros((L,N));
     z=a*randn(0,1,L,N);
     x[0,:]=z[0,:]
@@ -134,7 +134,7 @@ def objfun(f,t,X):
     if not re:
        re=var(X)
     return re
-    
+    '''
     
 def covaVG(X,M=0):
    N=X.size
@@ -161,7 +161,7 @@ def covaBH(X,M=0):
    c = dot(transpose(D),D)/Np
    return c
     
-def xcorr(X,L):
+'''def xcorr(X,L):
    X=demean(X)
    xc=zeros((L+1))
    xc[0]=1;
@@ -179,7 +179,7 @@ def xcorr2(X,Y,L):
        xc[L+k]=sum(X[0:-k]*Y[k:])/sqrt(sum(X[0:-k]**2)*sum(Y[k:]**2))  
        xc[L-k]=sum(Y[0:-k]*X[k:])/sqrt(sum(Y[0:-k]**2)*sum(X[k:]**2))
         
-   return xc 
+   return xc '''
    
 def trace0(x):
     m=mean(diag(x,0))
@@ -189,7 +189,7 @@ def trace1(x):
     m=mean(diag(x,1))
     return m
 
-def ar1fitcompDeq1(E,x,n=[]):
+'''def ar1fitcompDeq1(E,x,n=[]):
     N,D=x.shape
     [M,K]=E.shape
     Ns=N-M+1
@@ -221,7 +221,7 @@ def ar1fitcompDeq1(E,x,n=[]):
     c0tilde=trace0(Q@C@Q)/trace0(Q@Wf(gamma[d])@Q)   # AS eq 20
     alpha=c0tilde*(1-gamma**2)                       # AS eq 7 with l=0
     return alpha,gamma   
-
+'''
 
 def ar1fitcomptr(E,xtde,n=[]):
     if len(xtde.shape)>2:
@@ -295,12 +295,12 @@ def ar1fitcomptr(E,xtde,n=[]):
             alpha[d]=c0tilde*(1-gamma[d]**2)
     return alpha,gamma   
 
-def eps(z):
+'''def eps(z):
     """Equivalent to MATLAB eps
     """
     zre = np.real(z)
     zim = np.imag(z)
-    return np.spacing(np.max([zre, zim]))
+    return np.spacing(np.max([zre, zim]))'''
 from scipy.optimize import fminbound  
 
 def varimax_fun(A,reltol=1e-16,maxit=1000,normalize=True): 
@@ -345,7 +345,7 @@ def varimax_fun(A,reltol=1e-16,maxit=1000,normalize=True):
 
     return B,T
 
-def weight_latitude(ts,lat):
+'''def weight_latitude(ts,lat):
     N,D = ts.shape
     nlat = len(lat)
     
@@ -407,3 +407,4 @@ def pearson_corr_stat3(x,y,nlag=100,si=0.95):
         is_sig[i]=abs(to)>=abs(t_si)
     
     return r,cd2,n,r_si,is_sig
+'''

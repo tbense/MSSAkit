@@ -61,7 +61,7 @@ def dominant_period(ts,fs=1,ncomp=None,uncertainty=False,nsuro=100):
             p_suro,fm = fft_surrogates(ts[:,k],fs,nsuro)
             pfm = 1/fm
             sigma_T.append(sqrt(mean(abs(pfm-T[k])**2)))
-        return T, sigma_T    
+        return T, np.array(sigma_T)    
     else:
         return T
     

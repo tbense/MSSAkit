@@ -24,7 +24,7 @@ class mssa:
     
     Parameters
     ------------
-    ts : numpy.ndarray
+    ts : numpy.ndarray : (time_steps, channels)
         Time series array.
         
     M : int | None
@@ -37,7 +37,7 @@ class mssa:
         K = N - M + 1. As such, window_size should be no greater than N // 2. If
         left as None, MSSA will select N // 3.
         
-    n_rec : int | None
+   n_rec : int | None
         The number of the reconstructed components that is generated from the MSSA process. The default is 50.
         
     pre_pca : boolean
@@ -61,17 +61,17 @@ class mssa:
     ts : numpy.ndarray
         The input of the time series.     
     
-    pc_PC : numpy.ndarray
+    pca_PC : numpy.ndarray
         The set of PCs that is selected from the pre-PCA, if pre_pca is selected.
     
-    pc_u : The set of left singular vectors that is selected from the pre-PCA.
+    pca_u : The set of left singular vectors that is selected from the pre-PCA.
 
-    pc_v : The set of right singular vectors that is selected from the pre-PCA.
+    pca_v : The set of right singular vectors that is selected from the pre-PCA.
 
-    pc_s : The set of singular values that is selected from the pre-PCA.
+    pca_s : The set of singular values that is selected from the pre-PCA.
 
     Eigenvalue = pc_s**2, var_expl = Eigenvalue / sum(Eigenvalue). 
-    RC = usv: RC = pc_u[:,:n_components] @ diag(pc_s[:n_components]) @ transpose(pc_v[:,:n_components])
+    pca_RC = usv: RC = pc_u[:,:n_components] @ diag(pc_s[:n_components]) @ transpose(pc_v[:,:n_components])
 
     t : array
         The given time index of the time series. If t is not given, the time index will
@@ -98,16 +98,16 @@ class mssa:
     eigenvalue : numpy.array
         The eigenvalues of the trajectory matrix (singularvalue ** 2).
     
-    PC : numpy.ndarray
+    mssa_PC : numpy.ndarray
         The Time-PC from the MSSA.
     
-    RC : numpy.ndarray
+    mssa_RC : numpy.ndarray
         The reconstruction of MSSA in the original multi-channel data
         (or PCA components if the pre_pca is selected). The dimension of this 
         matrix is (N, D, rank), where N is the number of observations, D is 
         the number of channels, and rank is the number of components selected to keep.
     
-    RC_spatial : numpy.ndarray
+    mssa_RC_spatial : numpy.ndarray
         The reconstruction of MSSA in the original multi-channel data, if the pre_pca is selected.
         The dimension of this matrix is (N, D, rank), where N is the number
         of observations, D is the number of channels, and rank is the
@@ -122,23 +122,24 @@ class mssa:
     sigma_T : numpy.array
         The period uncertainty of the obtained dominant period.
     '''       
+    
 
 
     def __init__(self,
                  ts,                 
                  M=None,
-                 n_rec=50,
+                 n_rec=30,
                  pre_pca=False,
                  n_pc=None,
                  varimax=False,
                  t=None,
                  sampling_interval=1):
         
-        self.ts = ts
-        self.t = squeeze(t)
+        self.ts = ts #data (time, channels)
+        self.t = squeeze(t) #time_values
         self.sampling_interval = sampling_interval
         
-        if pre_pca:
+        if pre_pca: # perform initial PCA, used as input to MSSA
             ts_pca = pca(ts)
             pc = ts_pca.PC
             
@@ -147,10 +148,10 @@ class mssa:
             y = pc[:,:n_pc]
             vr = ts_pca.v[:,:n_pc]
             
-            self.pc_PC = copy(y) 
-            self.pc_u = copy(ts_pca.u[:,:n_pc])
-            self.pc_v = copy(vr)
-            self.pc_s = ts_pca.s[:n_pc]
+            self.pca_PC = copy(y) 
+            self.pca_u = copy(ts_pca.u[:,:n_pc])
+            self.pca_v = copy(vr)
+            self.pca_s = ts_pca.s[:n_pc]
 
         else:
             y = copy(ts)
@@ -159,16 +160,17 @@ class mssa:
             M = y.shape[0] // 3
 
         N,D = y.shape
-        for k in range(D):
+        for k in range(D): # remove mean from each y
             y[:,k]-=mean(y[:,k])
         
-        self.M = M
-            
-        L = N-M+1
+        self.M = M    # Window size
+        self.N = N    #time steps
+        self.D = D    #Channels
+        L = int(N-M+1)     # Adjusted window size N'=L=N-M+1
         self.L = L
         
         # creating trajectory matrix
-        idx = hankel(arange(L),arange(N-M,N))
+        idx = hankel(arange(L),arange(N-M,N)) 
         xtde = zeros((L,M,D),complex)           # trajectory matrix X 
         for d in range(D):
             xin = y[:,d]    
@@ -178,7 +180,7 @@ class mssa:
         xtde = reshape(xtde.swapaxes(1,2),(N-M+1,D*M)) # reshape trajectory matrix into X (L, M*D) , ie by stacking the lagged copies of the matrix behind each other
         
         #  perform MSSA by applying SVD to the trajectory matrix, devided by sqrt(D*M) to make the singular values squared compare directly to variance explained.
-        #  Applying SVD directly on trajectory matrix X gives us the singular vectors (left, EU and right EV^T) which represent T-EOFs and S-EOFs as well as the singular values Lamda_D.
+        #  Applying SVD directly on trajectory matrix X gives us the singular vectors (left, EU and right EV^T) which represent T-EOFs and ST-EOFs as well as the singular values Lamda_D.
         #  right singular vectors EV=E_d . (eq 4 AS96), eq2 GG15
 
         EU,EW,EV = svd(xtde/sqrt(D*M),full_matrices=False)
@@ -193,20 +195,20 @@ class mssa:
         
         if varimax:            
             # Rotate only the components with % of eigenvalues > 1%
-            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1           # select the index Sm where % explained>= 1%
+            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1              # select the index Sm where % explained>= 1%
             
-            EVsc = EV[:,:Sm]@diag(EW[:Sm])
-            EVr = zeros((M,D,Sm))
+            EVsc = EV[:,:Sm]@diag(EW[:Sm])                              # cross product eigenvectors EV with singular values to scale them appropriately
+            EVr = zeros((M,D,Sm))                                       # create empty arrar of size M,D3,Sm and place values of EVsc in there
             for k in range(Sm):
-                EVr[:,:,k] = reshape(EVsc[:,k],(D,M)).T            
+                EVr[:,:,k] = reshape(EVsc[:,k],(D,M)).T                 # EVr corresponds to S in Groth and Ghil 2011
                 
-            dummy,Tv = tool.varimax_fun(real(EVr))
+            dummy,Tv = tool.varimax_fun(real(EVr))                      # Apply varimax rotation, see toolbox.varimax_fun for annotations. Also Groth & Ghil 2011. 
+                                                                        # Tv = Rotation matrix T from eq. 9 in (GG2011)
             EV0 = copy(EV)
             EU0 = copy(EU)
-            EV[:,:Sm] = EV[:,:Sm] @ Tv
-            EW[:Sm] = diag(Tv.T@diag(EW[:Sm])@Tv)
+            EV[:,:Sm] = EV[:,:Sm] @ Tv                                  # Update the first Sm eigenvectors (non normalised = EV) by applying formula 9 (GG11) 
+            EW[:Sm] = diag(Tv.T@diag(EW[:Sm])@Tv)                       # Formula 12 (GG11)
             EU[:,:Sm] = EU[:,:Sm]@Tv
-            eigval[:Sm] = diag(Tv.T@diag(eigval[:Sm])@Tv)
     
     
             # sort again EW
@@ -220,21 +222,23 @@ class mssa:
             EU = real(EU)
 
             ll = arange(0,D*M,M)
-            Xv = (EU@diag(EW)@EV.T)*sqrt(D*M)
-            Xtdev=reshape(Xv,(L,D,M)).swapaxes(2,1)
+
+            Xv = (EU@diag(EW)@EV.T)*sqrt(D*M)                           #recompute the trajectory matrix by a reverse SVD and reversing the normalisation (Why D*M)
+            Xtdev=reshape(Xv,(L,D,M)).swapaxes(2,1)                     # shape trajectory matrix X to 3D (L, M,D)
             yv=Xv[:,ll]
             yvv=Xv[L-M+1:,ll+M-1]            
             yv=concatenate((yv,yvv),axis=0)            
     
             ew=diag(EW)
             
-            self.trajectory_matrix = Xtdev
+            self.trajectory_matrix = Xtdev                              # overwrite trajectory matrix with new one after varimax.
             
         self.left_vectors = EU
         self.right_vectors = EV
         self.singularvalue = EW
         self.eigenvalue = eigval
-        
+        self.var_expl_mssa =  np.around((self.eigenvalue / self.eigenvalue.sum() * 100),3) # store amount of variance that is explained by each ST-PCs
+
         # % get V and R in all pc
         NC = n_rec
         FF=zeros(NC)
@@ -243,6 +247,12 @@ class mssa:
         RC=zeros((N,D,NC))
         Ru=zeros((N,D,NC))
         ia=0
+
+        #The below loop implements eq 3 and 4 from GG2011 
+        #a = pc = sum over D and M,  e_dk * x_d.  aka lfilter Ej * yr (normalised by 1 = not normalised)
+        # RC = sum over D and M (implicit in hstack pc)
+        # RC = a_k * e_dk   aka lfilter pc * Ej, normalised by M (see 1/M before the summation in eq4)
+
         for o in range(NC) :
             Ej=(EV[:,o].reshape((D,-1))).T
             for j in range(D):
@@ -251,26 +261,35 @@ class mssa:
             A[:,ia]=pc
             pc=hstack((pc,zeros(M-1)))
             for j in range(D):                   
-                RC[:,j,ia]=lfilter(Ej[:,j],M,pc)                
+                RC[:,j,ia]=lfilter(Ej[:,j],M,pc)                #normalisation with factor M (ie * 1/M)    (text under eq. 52 Ghil et al. 2002)  
             ia+=1    
-        for i in range(0,M-1):
+        for i in range(0,M-1):                                  ## some sort of edge corretion for the sliding window ->  (eq 52 -> 11/12 G2002)
             RC[i,:,:]=RC[i,:,:]*M/(i+1)
             RC[N-i-1,:,:]=RC[N-i-1,:,:]*M/(i+1)
             
             
-        self.PC = A
-        self.RC = RC        
+        self.mssa_PC = A             # 2 / 3 in Groth&Ghil 2011
+        self.mssa_RC = RC            # 4 GG2011 
         
         if pre_pca:
-            Rx = zeros((ts.shape[0],ts.shape[1],NC))
+            Rx = zeros((ts.shape[0],ts.shape[1],NC))      #Convert Reconstructed components from current form (like the pre-pca output) to the input before pre-pca (ie, (time, channels, RCs))
             vt = transpose(vr)
             for i in range(NC):                
                 Rx[:, :,i]=(RC[:,:,i] @ vt)  #/w*stdx    
                 
-            self.RC_spatial = Rx
+            self.mssa_RC_spatial = Rx
+        #Compute freq stats from eigenvectors instead of the MSSA PCs
+        #self.F = time.dominant_freq(A,fs=sampling_interval)
+        #self.T, self.sigma_T = time.dominant_period(A,fs=sampling_interval,uncertainty=True)
+        if M*D >L: #left vectors are eigenbase - > EU
+                self.F = time.dominant_freq(EU,fs=sampling_interval) 
+                self.T, self.sigma_T = time.dominant_period(EU,fs=sampling_interval,uncertainty=True)
+
+        elif L > M*D: #right vectors form eigenbase -> EV
+                self.F = time.dominant_freq(EV,fs=sampling_interval) 
+                self.T, self.sigma_T = time.dominant_period(EV,fs=sampling_interval,uncertainty=True)        
+       
         
-        self.F = time.dominant_freq(A,fs=sampling_interval)
-        self.T, self.sigma_T = time.dominant_period(A,fs=sampling_interval,uncertainty=True)
         
         
     def mcmssa(self, Ns=100, norotate=[]):        
@@ -287,13 +306,13 @@ class mssa:
 
         Atributes
         ---------
-        sign90 : The index of MSSA PC that is above the 90% significance level
+        Ns : surrogates
+        
+        n_sign_95 : number of significant st-pcs above 95% percentile
 
-        sign95 : The index of MSSA PC that is above the 95% significance level
+        siglevel_value : array, shape (sign_perct, mssa_modes) -> contain the surrogate eigenvalue at the percentages in sign_use to plot vertical error bars in spectral plots. 
 
-        sign97_5 : The index of MSSA PC that is above the 97.5% significance level
-
-        sign99 : The index of MSSA PC that is above the 99% significance level
+        self.sign_mask : array, shape (sign_perct, mssa_modes) -> True if significant at given level
         
         eigenvalue_suro : numpy.ndarray
             The eigenvalue of the surrogates
@@ -303,7 +322,7 @@ class mssa:
             y = self.ts_pc
         else:
             y = self.ts
-            
+        self.Ns = Ns # retrievable attribute    
         N,D = y.shape
         M = self.M
         L = N - M+1
@@ -316,39 +335,70 @@ class mssa:
         while (len(nn0)!=len(nn)) and (iin<3):            
             nn0 = copy(nn)
             
-            alpha,gamma = tool.ar1fitcomptr(self.left_vectors,self.trajectory_matrix,n=norotate)
-            
-            r = zeros((N,D,Ns))
-            Wn = zeros((Ns,self.left_vectors.shape[1]))
-            
-            R = zeros((N,D,Ns))
-            for k in range(D):
+            alpha,gamma = tool.ar1fitcomptr(self.left_vectors,self.trajectory_matrix,n=norotate)   ### estimate alpha and gamma parameter to create red noise realizations. 
+            #                                                                                       Norotate contains significant T-EOFs (?) that are excluded from the data that the red noise parameters are fit to.
+            #                                                                                       Following AS1996 and GG2015 methodology regarding composite null-hypothesis
+            #  for annotations, see tool.ar1fitcomptr            
+            r = np.zeros((N,D,Ns))
+            #Wn = zeros((Ns,self.left_vectors.shape[1]))
+            R = np.zeros((N,D,Ns))
+            for k in range(D):                                                                          # white noise realizations (R)
                 for n in range(Ns):
                     temp=np.random.default_rng().normal(0, 1, size=(N))
                     R[:,k,n]=temp
             
-            idx=hankel(arange(L),arange(N-self.M,N))
+            idx=hankel(np.arange(L),np.arange(N-M,N))
             for k in range(D):       
-                r[:,k,:] = lfilter(np.array([sqrt(alpha[k])]),np.array([1,-gamma[k]]),R[:,k,:],axis=0)        
+                r[:,k,:] = lfilter(np.array([np.sqrt(alpha[k])]),np.array([1,-gamma[k]]),R[:,k,:],axis=0)    # red noise realizations (r)
+                                                                                                          ## square root of alpha is used to ensure the variance of red noise is correctly scale      
             
-                Lambda_Procrustes = np.zeros((Ns,self.left_vectors.shape[1]))
-                for n in tqdm(range(Ns)):                               
-                    Yn = np.zeros((L,self.M,D))
-                    for d in range(D):
-                        xin = r[:,d,n]
-                        Yn[:,:,d] = (xin[idx])
-                    Yn = np.reshape(Yn.swapaxes(1,2),(L,D*M))
-                    un,wn,vn = svd(Yn/np.sqrt(N2),full_matrices=False)                                 # Yn is the trajectory matrix of each surrogate (L, M, D) - Reshaped to 2D -> (L, D*M). Normalized by the maximum of L & D*M
-                    vn = vn.T
-                                                                                                    # These steps introduce the Procrustes rotation... formulas from Groth&Ghil 2015
-                    pn = (un@np.diag(wn)).T@(self.left_vectors@np.diag(self.singularvalue))               # eq 10B (GG2015): E_r = U_n, Sigma_R = wn ), self.left_vectors (= data_left_singular_vectors = EU, self.singuularvalue = EW )
-                                                                                                    # (E_r @ Sigma_R)^T @   E_data @ Sigma_data  == USV'
-                    up,sp,vp = svd(pn)                                                              # eq 10b right hand side gives U S V' 
-                    Te = np.real(up)@np.real(vp)                                                          # eq 10a  , thus
-                    #Wn_wrong[n,:] = np.diag(Te.T@np.diag(wn)@Te)**2                                             # eq 11 (!) squared -> directly calculates eigenvalue instead of singular value (see below: self.eigenvalue_suro = Wn)
-                    Lambda_Procrustes [n,:] = np.diag(Te.T@np.diag(wn**2)@Te)   
-                    Wn = Lambda_Procrustes.copy()
+            Lambda_Procrustes = np.zeros((Ns,self.left_vectors.shape[1]))
+            for n in tqdm(range(Ns)):                               
+                Yn = np.zeros((L,self.M,D))
+                for d in range(D):
+                    xin = r[:,d,n]
+                    Yn[:,:,d] = (xin[idx])
+                Yn = np.reshape(Yn.swapaxes(1,2),(L,D*M))
+                un,wn,vn = svd(Yn/np.sqrt(N2),full_matrices=False)                                 # Yn is the trajectory matrix of each surrogate (L, M, D) - Reshaped to 2D -> (L, D*M). Normalized by the maximum of L & D*M
+                vn = vn.T
+                                                                                                # These steps introduce the Procrustes rotation... formulas from Groth&Ghil 2015
+                pn = (un@np.diag(wn)).T@(self.left_vectors@np.diag(self.singularvalue))               # eq 10B (GG2015): E_r = U_n, Sigma_R = wn ), self.left_vectors (= data_left_singular_vectors = EU, self.singuularvalue = EW )
+                                                                                                # (E_r @ Sigma_R)^T @   E_data @ Sigma_data  == USV'
+                up,sp,vp = svd(pn)                                                              # eq 10b right hand side gives U S V' 
+                Te = np.real(up)@np.real(vp)                                                          # eq 10a  , thus
+                #Wn_wrong[n,:] = np.diag(Te.T@np.diag(wn)@Te)**2                                             # eq 11 (!) squared -> directly calculates eigenvalue instead of singular value (see below: self.eigenvalue_suro = Wn)
+                Lambda_Procrustes [n,:] = np.diag(Te.T@np.diag(wn**2)@Te)   
+                Wn = Lambda_Procrustes.copy()
             iin+=1
+            per_choice = np.asarray([1, 2.5, 5, 10, 50, 90, 95, 97.5, 99])
+            self.per_choice = per_choice
+
+            n_levels = len(per_choice)          # 9
+            K = self.eigenvalue.size            # = left_vectors.shape[1]
+
+            # --- significance thresholds, vectorised over modes -------------------
+            Wn_sorted = np.sort(Wn, axis=0)                              # (Ns, K)
+            idx = np.minimum((Ns * per_choice / 100).astype(int), Ns - 1)  # clamp
+            siglevel_val = Wn_sorted[idx, :]                             # (n_levels, K)
+
+            # --- boolean significance mask ---------------------------------------
+            # sign_mask[i, k] is True  <=>  eigenvalue[k] > siglevel_val[i, k]
+            sign_mask = self.eigenvalue[None, :] > siglevel_val           # (n_levels, K) bool
+
+            # --- single headline count -------------------------------------------
+            i95 = int(np.where(per_choice == 95)[0][0])
+            n_sign_95 = int(sign_mask[i95].sum())
+
+            self.siglevel_value = siglevel_val
+            self.sign_mask = sign_mask
+            self.n_sign_95 = n_sign_95
+
+            #self.eigenvalue_suro = Wn don't actually store the eigenvalues of the surrogate, takes loads of space and is not needed
+
+        #self.sign95 = _modes_above(sign_mask, per_choice, 95)   # same values, same order
+
+
+            '''
             sign90=[]
             sign95=[]
             sign97_5=[]
@@ -374,7 +424,7 @@ class mssa:
                     elif i ==8:
                         if self.eigenvalue[k] > siglevel_val[i,k]:        
                             sign99.append(k)
-            '''Ongarde=[]
+            Ongarde=[]
             siglevel_val = zeros(self.left_vectors.shape[1])
             for k in range(self.left_vectors.shape[1]):                        
                 wk = sort(Wn[:,k])
@@ -387,15 +437,18 @@ class mssa:
            
         #self.siglevel = siglevel
         #self.isig = Ongarde
-        self.sign90 = sign90
-        self.sign95 = sign95
-        self.sign97_5 = sign97_5
-        self.sign99 = sign99
+        #self.sign90 = np.array(sign90)
+        #self.sign95 = np.array(sign95)
+        #self.sign97_5 = np.array(sign97_5)
+        #self.sign99 = np.array(sign99)
 
-        self.eigenvalue_suro = Wn
-        self.siglevel_value = siglevel_val
         
-        
+    def _modes_above(self, level):
+                # e.g., self.sign95 = _modes_above(sign_mask, per_choice, 95)   # same values, same order
+                return np.flatnonzero(self.sign_mask[int(np.where(self.per_choice == level)[0][0])])
+
+
+
     def get_group(self,f_threshold=0.01,comp='isig'):
         '''The function to group the T-EOF based on the similarity of the
         dominant frequency of each component.
