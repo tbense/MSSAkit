@@ -61,9 +61,18 @@ class mssa:
     ts : numpy.ndarray
         The input of the time series.     
     
-    ts_pc : numpy.ndarray
-        The set of PCs that is selected from the PCA before the MSSA, if pre_pca is selected.
-       
+    pc_PC : numpy.ndarray
+        The set of PCs that is selected from the pre-PCA, if pre_pca is selected.
+    
+    pc_u : The set of left singular vectors that is selected from the pre-PCA.
+
+    pc_v : The set of right singular vectors that is selected from the pre-PCA.
+
+    pc_s : The set of singular values that is selected from the pre-PCA.
+
+    Eigenvalue = pc_s**2, var_expl = Eigenvalue / sum(Eigenvalue). 
+    RC = usv: RC = pc_u[:,:n_components] @ diag(pc_s[:n_components]) @ transpose(pc_v[:,:n_components])
+
     t : array
         The given time index of the time series. If t is not given, the time index will
         be replaced with the i-index point.
@@ -138,7 +147,11 @@ class mssa:
             y = pc[:,:n_pc]
             vr = ts_pca.v[:,:n_pc]
             
-            self.ts_pc = copy(y)            
+            self.pc_PC = copy(y) 
+            self.pc_u = copy(ts_pca.u[:,:n_pc])
+            self.pc_v = copy(vr)
+            self.pc_s = ts_pca.s[:n_pc]
+
         else:
             y = copy(ts)
         
