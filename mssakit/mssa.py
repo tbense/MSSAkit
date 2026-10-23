@@ -13,9 +13,9 @@ from tqdm import tqdm
 from scipy.signal import lfilter,periodogram
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
-from mssakit.pca import *
-import mssakit.toolbox as tool
-import mssakit.time_analysis as time
+from mssakit.mssakit_tools.pca import *
+import mssakit.mssakit_tools.toolbox as tool
+import mssakit.mssakit_tools.time_analysis as time
 
 class mssa:
     '''Performs MSSA decomposition on multivariate time series.
@@ -61,9 +61,18 @@ class mssa:
     ts : numpy.ndarray
         The input of the time series.     
     
-    ts_pc : numpy.ndarray
-        The set of PCs that is selected from the PCA before the MSSA, if pre_pca is selected.
-       
+    pc_PC : numpy.ndarray
+        The set of PCs that is selected from the pre-PCA, if pre_pca is selected.
+    
+    pc_u : The set of left singular vectors that is selected from the pre-PCA.
+
+    pc_v : The set of right singular vectors that is selected from the pre-PCA.
+
+    pc_s : The set of singular values that is selected from the pre-PCA.
+
+    Eigenvalue = pc_s**2, var_expl = Eigenvalue / sum(Eigenvalue). 
+    RC = usv: RC = pc_u[:,:n_components] @ diag(pc_s[:n_components]) @ transpose(pc_v[:,:n_components])
+
     t : array
         The given time index of the time series. If t is not given, the time index will
         be replaced with the i-index point.
@@ -138,7 +147,11 @@ class mssa:
             y = pc[:,:n_pc]
             vr = ts_pca.v[:,:n_pc]
             
-            self.ts_pc = copy(y)            
+            self.pc_PC = copy(y) 
+            self.pc_u = copy(ts_pca.u[:,:n_pc])
+            self.pc_v = copy(vr)
+            self.pc_s = ts_pca.s[:n_pc]
+
         else:
             y = copy(ts)
         
@@ -152,17 +165,22 @@ class mssa:
         self.M = M
             
         L = N-M+1
+        self.L = L
         
         # creating trajectory matrix
         idx = hankel(arange(L),arange(N-M,N))
-        xtde = zeros((L,M,D),complex)
+        xtde = zeros((L,M,D),complex)           # trajectory matrix X 
         for d in range(D):
             xin = y[:,d]    
             xtde[:,:,d] = xin[idx]            
         self.trajectory_matrix = xtde
         
-        xtde = reshape(xtde.swapaxes(1,2),(N-M+1,D*M)) 
+        xtde = reshape(xtde.swapaxes(1,2),(N-M+1,D*M)) # reshape trajectory matrix into X (L, M*D) , ie by stacking the lagged copies of the matrix behind each other
         
+        #  perform MSSA by applying SVD to the trajectory matrix, devided by sqrt(D*M) to make the singular values squared compare directly to variance explained.
+        #  Applying SVD directly on trajectory matrix X gives us the singular vectors (left, EU and right EV^T) which represent T-EOFs and S-EOFs as well as the singular values Lamda_D.
+        #  right singular vectors EV=E_d . (eq 4 AS96), eq2 GG15
+
         EU,EW,EV = svd(xtde/sqrt(D*M),full_matrices=False)
         EV = EV.T
         
@@ -171,11 +189,11 @@ class mssa:
         EW = EW[ks]
         EV = real(EV[:,ks])
         EU = real(EU[:,ks])
-        eigval = EW**2
+        eigval = EW**2          # eigenvalues = singular values squared.
         
         if varimax:            
             # Rotate only the components with % of eigenvalues > 1%
-            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1
+            Sm = nonzero(eigval/sum(eigval)>0.01)[0][-1]+1           # select the index Sm where % explained>= 1%
             
             EVsc = EV[:,:Sm]@diag(EW[:Sm])
             EVr = zeros((M,D,Sm))
@@ -420,4 +438,4 @@ class mssa:
         
         wk = sort(self.eigenvalue_suro, axis=0)
         
-        tool.plot_mc(self.F, self.eigenvalue, wk, top_level, low_level, self.isig, ncomp)        
+        tool.plot_mc(self.F, self.eigenvalue, wk, top_level, low_level, self.isig, ncomp)       
