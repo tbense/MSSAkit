@@ -152,6 +152,7 @@ class mssa:
             self.pca_u = copy(ts_pca.u[:,:n_pc])
             self.pca_v = copy(vr)
             self.pca_s = ts_pca.s[:n_pc]
+            self.pca_n_pc = n_pc
 
         else:
             y = copy(ts)
@@ -318,12 +319,13 @@ class mssa:
             The eigenvalue of the surrogates
         
         '''
-        if hasattr(self, 'ts_pc'):
-            y = self.ts_pc
+        if hasattr(self, 'pca_PC'):
+            y = self.pca_PC
         else:
             y = self.ts
         self.Ns = Ns # retrievable attribute    
         N,D = y.shape
+
         M = self.M
         L = N - M+1
         N2 = max(L,D*M)        
