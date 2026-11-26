@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mssakit',  # Required
-    version='2.0.0',          # Required
+    version='v1.0.0-paper1',          # Required
     author='Toon Bense',       # Optional
     description='Adjusted mssakit',  # Optional
 
